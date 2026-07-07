@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenMacros - Local Macro & Meal Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M12,6A6,6 0 0,1 18,12C18,14.09 16.95,15.93 15.35,17H13.5V15.5H12V14H9.5V11H12V8.5H10.5V7H12.5C12.33,6.67 12.17,6.33 12,6M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5Z"/>
+        </svg>
+      </div>
+      <span class="logo-text">OpenMacros</span>
+    </div>
+
+    <ul class="nav-links">
+      <li class="nav-item">
+        <a class="nav-link active" data-tab="dashboard">
+          <svg viewBox="0 0 24 24"><path d="M13,3V9H21V3H13M13,21H21V11H13V21M3,21H11V15H3V21M3,13H11V3H3V13Z"/></svg>
+          Daily Intake
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="items">
+          <svg viewBox="0 0 24 24"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
+          Food Library
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="ingredients">
+          <svg viewBox="0 0 24 24"><path d="M12,2C11.5,2 11,2.19 10.59,2.59L2.59,10.59C1.8,11.37 1.8,12.63 2.59,13.41L10.59,21.41C11,21.81 11.5,22 12,22C12.5,22 13,21.81 13.41,21.41L21.41,13.41C22.2,12.63 22.2,11.37 21.41,10.59L13.41,2.59C13,2.19 12.5,2 12,2M12,4L20,12L12,20L4,12L12,4Z"/></svg>
+          Ingredients
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="meals">
+          <svg viewBox="0 0 24 24"><path d="M11,2H13V4H11V2M11,6H13V8H11V6M11,10H13V12H11V10M11,14H13V16H11V14M11,18H13V20H11V18M11,22H13V24H11V22M7,2H9V4H7V2M7,6H9V8H7V6M7,10H9V12H7V10M7,14H9V16H7V14M7,18H9V20H7V18M7,22H9V24H7V22M15,2H17V4H15V2M15,6H17V8H15V6M15,10H17V12H15V10M15,14H17V16H15V14M15,18H17V20H15V18M15,22H17V24H15V22Z"/></svg>
+          Meals List
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="history">
+          <svg viewBox="0 0 24 24"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"/></svg>
+          History cards
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="weight">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-13c-2.76 0-5 2.24-5 5h2c0-1.66 1.34-3 3-3s3 1.34 3 3h2c0-2.76-2.24-5-5-5z"/></svg>
+          Weight Tracker
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-tab="goals">
+          <svg viewBox="0 0 24 24"><path d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M14,17H7V15H14V17M17,13H7V11H17V13M17,9H7V7H17V9Z"/></svg>
+          Target Goals
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <p>OpenMacros v1.0.0</p>
+      <p>Local Server Storage</p>
+    </div>
+  </aside>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    
+    <!-- 1. DAILY INTAKE & LOG DASHBOARD -->
+    <section id="dashboard-section" class="dashboard-section active">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Daily Nutrition Tracker</h1>
+          <p class="section-subtitle">Active Day Date: <strong id="active-day-display">---</strong></p>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="track-new-day-btn">
+            <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+            </svg>
+            Track a New Day
+          </button>
+        </div>
+      </div>
+
+      <!-- Macro Goals Grid Card -->
+      <div class="goals-grid">
+        <!-- Protein Goal -->
+        <div class="glass-card goal-card protein">
+          <div class="goal-header">
+            <span class="goal-name">Protein</span>
+            <div class="goal-icon">P</div>
+          </div>
+          <div class="goal-values">
+            <div class="goal-main-val"><span id="p-consumed">0</span>g</div>
+            <div class="goal-sub-val">Goal: <span id="p-goal">150</span>g | Remaining: <span id="p-remaining">150</span>g</div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" id="p-progress"></div>
+          </div>
+        </div>
+
+        <!-- Fat Goal -->
+        <div class="glass-card goal-card fat">
+          <div class="goal-header">
+            <span class="goal-name">Fat</span>
+            <div class="goal-icon">F</div>
+          </div>
+          <div class="goal-values">
+            <div class="goal-main-val"><span id="f-consumed">0</span>g</div>
+            <div class="goal-sub-val">Goal: <span id="f-goal">70</span>g | Remaining: <span id="f-remaining">70</span>g</div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" id="f-progress"></div>
+          </div>
+        </div>
+
+        <!-- Carbs Goal -->
+        <div class="glass-card goal-card carbs">
+          <div class="goal-header">
+            <span class="goal-name">Carbs</span>
+            <div class="goal-icon">C</div>
+          </div>
+          <div class="goal-values">
+            <div class="goal-main-val"><span id="c-consumed">0</span>g</div>
+            <div class="goal-sub-val">Goal: <span id="c-goal">200</span>g | Remaining: <span id="c-remaining">200</span>g</div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" id="c-progress"></div>
+          </div>
+        </div>
+
+        <!-- Kcal Goal -->
+        <div class="glass-card goal-card kcal">
+          <div class="goal-header">
+            <span class="goal-name">Calories</span>
+            <div class="goal-icon">K</div>
+          </div>
+          <div class="goal-values">
+            <div class="goal-main-val"><span id="k-consumed">0</span> kcal</div>
+            <div class="goal-sub-val">Goal: <span id="k-goal">2030</span> | Remaining: <span id="k-remaining">2030</span></div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" id="k-progress"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log Layout Grid (Split: Intake List vs Goal Settings) -->
+      <div class="log-layout-grid">
+        
+        <!-- Left: Log Intake -->
+        <div class="glass-card">
+          <div class="actions-bar">
+            <h3>Intake Food Log</h3>
+            <div class="search-wrapper">
+              <input type="text" class="search-input" id="search-logs" placeholder="Search logs (item, type)...">
+              <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="glass-table" id="logs-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Food Item / Meal Name</th>
+                  <th>Amount</th>
+                  <th>Protein</th>
+                  <th>Fat</th>
+                  <th>Carbs</th>
+                  <th>Kcal</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="logs-list">
+                <!-- Log entries will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right Side: Log Form & Goal Configuration -->
+        <div style="display:flex; flex-direction:column; gap:2rem">
+          <!-- Log New Food Form -->
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1rem">Log Consumption</h3>
+            
+            <div class="type-selector">
+              <div class="type-tab active" id="type-tab-item" onclick="switchLogType('item')">Food Item</div>
+              <div class="type-tab" id="type-tab-meal" onclick="switchLogType('meal')">Meal Recipe</div>
+            </div>
+
+            <form id="log-food-form">
+              <!-- Item Custom Searchable Dropdown -->
+              <div class="form-group" id="log-item-select-group">
+                <label class="form-label" for="log-item-search">Choose Item</label>
+                <div class="custom-dropdown" id="item-dropdown-wrapper">
+                  <input type="text" class="form-input dropdown-search-input" id="log-item-search" placeholder="Type to search Food Library..." autocomplete="off">
+                  <input type="hidden" id="log-item-select">
+                  <div class="dropdown-options-list" id="item-options-list"></div>
+                </div>
+              </div>
+
+              <!-- Meal Custom Searchable Dropdown (hidden by default) -->
+              <div class="form-group" id="log-meal-select-group" style="display:none">
+                <label class="form-label" for="log-meal-search">Choose Meal</label>
+                <div class="custom-dropdown" id="meal-dropdown-wrapper">
+                  <input type="text" class="form-input dropdown-search-input" id="log-meal-search" placeholder="Type to search meals..." autocomplete="off">
+                  <input type="hidden" id="log-meal-select">
+                  <div class="dropdown-options-list" id="meal-options-list"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" id="log-amount-label" for="log-amount">Amount (Grams)</label>
+                <input type="number" class="form-input" id="log-amount" min="0.01" step="any" placeholder="Enter amount" required>
+                <span id="log-amount-hint" style="font-size:0.75rem; color:var(--text-muted)"></span>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem">Log Consumption</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. FOOD LIBRARY (ITEMS) DASHBOARD -->
+    <section id="items-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Food Items Library</h1>
+          <p class="section-subtitle">Manage base food products and individual nutrition statistics</p>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="actions-bar">
+          <div class="search-wrapper">
+            <input type="text" class="search-input" id="search-items" placeholder="Search food library...">
+            <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+          </div>
+        </div>
+
+        <div class="table-wrapper" style="margin-bottom: 2rem">
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Food Name</th>
+                <th>Base Qty</th>
+                <th>Unit</th>
+                <th>Protein (g)</th>
+                <th>Fat (g)</th>
+                <th>Carbs (g)</th>
+                <th>Kcal (Auto)</th>
+                <th style="width: 120px">Actions</th>
+              </tr>
+              <!-- Add Item Row (at top of table) -->
+              <tr class="table-form-row">
+                <td><input type="text" class="inline-edit-input" id="new-item-name" placeholder="Chicken Breast..." required></td>
+                <td><input type="number" class="inline-edit-input" id="new-item-qty" placeholder="100" min="0.1" required></td>
+                <td>
+                  <select class="inline-edit-select" id="new-item-unit">
+                    <option value="Grams">Grams</option>
+                    <option value="Ounces">Ounces</option>
+                    <option value="tsp">tsp</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="Item">Item</option>
+                    <option value="ml">ml</option>
+                  </select>
+                </td>
+                <td><input type="number" class="inline-edit-input" id="new-item-p" placeholder="23" min="0" step="any" required></td>
+                <td><input type="number" class="inline-edit-input" id="new-item-f" placeholder="1.2" min="0" step="any" required></td>
+                <td><input type="number" class="inline-edit-input" id="new-item-c" placeholder="0" min="0" step="any" required></td>
+                <td style="color:var(--text-muted)">-</td>
+                <td>
+                  <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; width:100%" onclick="addFoodItem()">Add</button>
+                </td>
+              </tr>
+            </thead>
+            <tbody id="items-list-body">
+              <!-- Item rows here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. INGREDIENTS DASHBOARD -->
+    <section id="ingredients-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Meal Ingredients Base</h1>
+          <p class="section-subtitle">Define scaled ingredients linked to Library Items (e.g. 800g Chicken, 30g Cheese)</p>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="actions-bar">
+          <div class="search-wrapper">
+            <input type="text" class="search-input" id="search-ingredients" placeholder="Search ingredients...">
+            <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Ingredient Label</th>
+                <th>Food Library Relation</th>
+                <th>Amount</th>
+                <th>Protein (g)</th>
+                <th>Fat (g)</th>
+                <th>Carbs (g)</th>
+                <th>Kcal (Auto)</th>
+                <th style="width: 120px">Actions</th>
+              </tr>
+              <!-- Add Ingredient Row (at top of table) -->
+              <tr class="table-form-row">
+                <td><input type="text" class="inline-edit-input" id="new-ing-name" placeholder="Breast 800g..." required></td>
+                <td>
+                  <div class="custom-dropdown" id="new-ing-item-wrapper" style="min-width: 200px">
+                    <input type="text" class="inline-edit-input dropdown-search-input" id="new-ing-item-search" placeholder="Search food library..." autocomplete="off" required>
+                    <input type="hidden" id="new-ing-item" required>
+                    <div class="dropdown-options-list" id="new-ing-item-options-list"></div>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex; align-items:center; gap:0.5rem">
+                    <input type="number" class="inline-edit-input" id="new-ing-amount" placeholder="800" min="0.1" step="any" required style="width:80px">
+                    <span id="new-ing-unit-hint" style="font-size:0.85rem; color:var(--text-muted)">g</span>
+                  </div>
+                </td>
+                <td style="color:var(--text-muted); font-size: 0.85rem">Auto Calc</td>
+                <td style="color:var(--text-muted); font-size: 0.85rem">Auto Calc</td>
+                <td style="color:var(--text-muted); font-size: 0.85rem">Auto Calc</td>
+                <td style="color:var(--text-muted); font-size: 0.85rem">Auto Calc</td>
+                <td>
+                  <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; width:100%" onclick="addIngredient()">Add</button>
+                </td>
+              </tr>
+            </thead>
+            <tbody id="ingredients-list-body">
+              <!-- Ingredients row list -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. MEALS DASHBOARD -->
+    <section id="meals-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Meals and Recipes</h1>
+          <p class="section-subtitle">Compose full meals from individual ingredients. View and modify aggregate macros.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openCreateMealModal()">
+            <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+            </svg>
+            Create New Meal
+          </button>
+        </div>
+      </div>
+
+      <div class="actions-bar">
+        <div class="search-wrapper">
+          <input type="text" class="search-input" id="search-meals" placeholder="Search meals...">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+        </div>
+      </div>
+
+      <!-- Meal Cards Grid -->
+      <div class="meals-grid" id="meals-cards-container">
+        <!-- Meal Cards loaded dynamically -->
+      </div>
+    </section>
+
+    <!-- 5. HISTORY DAILY CARDS -->
+    <section id="history-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Historical Log Cards</h1>
+          <p class="section-subtitle">Track your nutritional performance and metrics across all past logged dates</p>
+        </div>
+      </div>
+
+      <div class="actions-bar">
+        <div class="search-wrapper">
+          <input type="text" class="search-input" id="search-history" placeholder="Search history by date or status...">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+        </div>
+      </div>
+
+      <div class="history-cards-grid" id="history-grid-container">
+        <!-- Cards loaded dynamically -->
+      </div>
+    </section>
+
+    <!-- 6. WEIGHT TRACKER SECTION -->
+    <section id="weight-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Weight Progress Tracker</h1>
+          <p class="section-subtitle">Monitor monthly bodyweight changes and visualize trends</p>
+        </div>
+      </div>
+
+      <div class="log-layout-grid">
+        <!-- Left: Wide column for Chart & History Table -->
+        <div style="display:flex; flex-direction:column; gap:2rem">
+          <!-- Chart Card -->
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-wrap: wrap; gap:1rem">
+              <h3 style="margin-bottom:0">Weight Trend Chart</h3>
+              <div id="weight-trend-badge" style="font-size:0.8rem; font-weight:700; padding:0.3rem 0.75rem; border-radius:30px; display:none; text-transform:uppercase; letter-spacing:0.5px"></div>
+            </div>
+            <p id="weight-trend-summary" style="font-size:0.95rem; line-height:1.5; color:var(--text-secondary); margin-bottom: 1.5rem;"></p>
+            <div id="weight-chart-container" style="width:100%; min-height:280px; display:flex; align-items:center; justify-content:center;">
+              <!-- Chart SVG dynamically generated -->
+            </div>
+          </div>
+
+          <!-- History Table Card -->
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1.5rem">Logged History</h3>
+            <div class="table-wrapper">
+              <table class="glass-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Weight (kg)</th>
+                    <th>Change</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="weight-list">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Narrow column for Log Form -->
+        <div style="display:flex; flex-direction:column; gap:2rem">
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1.5rem">Log Body Weight</h3>
+            <form id="weight-form">
+              <div class="form-group">
+                <label class="form-label" for="weight-month">Select Month</label>
+                <input type="month" class="form-input" id="weight-month" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="weight-value">Weight (kg)</label>
+                <input type="number" class="form-input" id="weight-value" step="0.01" min="10" max="500" placeholder="e.g. 78.55" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem">
+                Save Weight Log
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. GOALS CONFIGURATION SECTION -->
+    <section id="goals-section" class="dashboard-section">
+      <div class="section-header">
+        <div class="header-title-wrapper">
+          <h1 class="section-title">Daily Nutrition Targets</h1>
+          <p class="section-subtitle">Adjust your baseline daily target goals for protein, fat, and carbohydrates</p>
+        </div>
+      </div>
+
+      <div class="log-layout-grid">
+        <!-- Left: Goals Form -->
+        <div class="glass-card">
+          <h3 style="margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem">
+            <svg style="width:22px; height:22px; fill:var(--color-protein)" viewBox="0 0 24 24"><path d="M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 1,1 4,12A8,8 0 0,1 12,4M11,6V12H16V14H9V6H11Z"/></svg>
+            Set Custom Targets
+          </h3>
+          <form id="goals-editor-form">
+            <div class="form-group">
+              <label class="form-label" for="goal-p-input">Protein Target (g)</label>
+              <input type="number" class="form-input" id="goal-p-input" value="150" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="goal-f-input">Fat Target (g)</label>
+              <input type="number" class="form-input" id="goal-f-input" value="70" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="goal-c-input">Carbs Target (g)</label>
+              <input type="number" class="form-input" id="goal-c-input" value="200" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem">Save Daily Goals</button>
+          </form>
+        </div>
+
+        <!-- Right: Calculate Macros Info -->
+        <div class="glass-card" style="background: linear-gradient(135deg, rgba(138,35,135,0.15), rgba(233,64,87,0.15)); border: 1px solid rgba(233,64,87,0.25);">
+          <h3 style="margin-bottom: 1rem; color: #fff; display:flex; align-items:center; gap:0.5rem">
+            <svg style="width:22px; height:22px; fill:#e94057" viewBox="0 0 24 24"><path d="M7,15H9V17H7V15M7,11H9V13H7V11M7,7H9V9H7V7M11,15H13V17H11V15M11,11H13V13H11V11M11,7H13V9H11V7M15,15H17V17H15V15M15,11H17V13H15V11M15,7H17V9H15V7M19,15H21V17H19V15M19,11H21V13H19V11M19,7H21V9H19V7M3,3V21H21V3H3M5,5H19V19H5V5Z"/></svg>
+            Macro Calculator & Guide
+          </h3>
+          <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.6; margin-bottom:1.5rem">
+            Need help calculating your custom daily targets? Check out this complete macro guide to calculate your optimal protein, fat, and carbohydrate ratio based on your body composition and fitness goals.
+          </p>
+          <a href="https://github.com/96ibman/macro-guide" target="_blank" class="btn btn-secondary" style="display:inline-flex; align-items:center; justify-content:center; gap:0.5rem; text-decoration:none; width:100%; background: var(--color-accent-grad); border: none; color: #fff; font-weight:600; padding:0.75rem 1rem; border-radius:10px; box-shadow: 0 4px 15px rgba(233, 64, 87, 0.4); transition: transform 0.2s ease, opacity 0.2s ease;">
+            <svg style="width:18px; height:18px; fill:#fff" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.41 6,9.5 6.63,8.8C6.52,8.55 6.17,7.53 6.72,6.15C6.72,6.15 7.56,5.88 9.47,7.17C10.27,6.95 11.12,6.84 12,6.84C12.88,6.84 13.73,6.95 14.53,7.17C16.44,5.88 17.28,6.15 17.28,6.15C17.83,7.53 17.48,8.55 17.37,8.8C18,9.5 18.38,10.41 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+            Calculate Needed Macros
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- === MODALS === -->
+
+  <!-- A. MEAL CREATE / EDIT MODAL -->
+  <div class="modal-overlay" id="meal-modal">
+    <div class="glass-card modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="meal-modal-title">Compose New Meal</h2>
+        <button class="close-btn" onclick="closeMealModal()">&times;</button>
+      </div>
+      <form id="meal-form">
+        <input type="hidden" id="meal-edit-id">
+        
+        <div class="form-group">
+          <label class="form-label" for="meal-name-input">Meal Name</label>
+          <input type="text" class="form-input" id="meal-name-input" placeholder="e.g. Cheesy Chicken Pasta" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="meal-ing-search">Search & Filter Ingredients</label>
+          <input type="text" class="form-input" id="meal-ing-search" placeholder="Type to filter ingredients..." autocomplete="off" style="margin-bottom:0.75rem">
+          
+          <label class="form-label">Select Ingredients in Meal</label>
+          <div class="meal-ingredients-selection" id="meal-ingredients-checkboxes">
+            <!-- Checkboxes for ingredients loaded here -->
+          </div>
+          
+          <div id="meal-selected-summary" style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.75rem; line-height:1.4">
+            <strong>Added Ingredients:</strong> None
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; display:block">Create ingredients in the Ingredients Dashboard first.</span>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeMealModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="meal-modal-submit-btn">Save Meal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- B. CONFIRM DELETE MODAL -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="glass-card modal-container" style="max-width: 400px">
+      <div class="modal-header" style="margin-bottom:1rem">
+        <h2 class="modal-title">Delete Confirmation</h2>
+        <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <p style="color:var(--text-secondary); font-size:0.95rem; line-height:1.5; margin-bottom:1.5rem">
+        Are you absolutely sure you want to delete <strong id="delete-target-name" style="color:#fff">this item</strong>? This action cannot be undone.
+      </p>
+      <div class="form-actions" style="margin-top:0">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" id="confirm-delete-btn">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Area -->
+  <div class="toast-container" id="toast-area"></div>
+
+  <!-- Logic Script -->
+  <script src="app.js"></script>
+</body>
+</html>
