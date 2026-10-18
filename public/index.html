@@ -531,7 +531,7 @@
 
   <!-- A. MEAL CREATE / EDIT MODAL -->
   <div class="modal-overlay" id="meal-modal">
-    <div class="glass-card modal-container">
+    <div class="glass-card modal-container meal-compose-modal-container">
       <div class="modal-header">
         <h2 class="modal-title" id="meal-modal-title">Compose New Meal</h2>
         <button class="close-btn" onclick="closeMealModal()">&times;</button>
@@ -545,21 +545,45 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="meal-ing-search">Search & Filter Ingredients</label>
-          <input type="text" class="form-input" id="meal-ing-search" placeholder="Type to filter ingredients..." autocomplete="off" style="margin-bottom:0.75rem">
-          
-          <label class="form-label">Select Ingredients in Meal</label>
-          <div class="meal-ingredients-selection" id="meal-ingredients-checkboxes">
-            <!-- Checkboxes for ingredients loaded here -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem">
+            <label class="form-label" style="margin-bottom:0">Select Ingredients in Meal</label>
+            <div class="search-wrapper" style="max-width:300px; width:100%">
+              <input type="text" class="search-input" id="meal-ing-search" placeholder="Filter ingredients..." autocomplete="off">
+              <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            </div>
+          </div>
+
+          <div class="table-wrapper meal-compose-table-wrapper" style="max-height: 42vh; overflow-y: auto;">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th style="width: 44px; text-align: center;"></th>
+                  <th>Ingredient Label</th>
+                  <th>Food Library Relation</th>
+                  <th>Amount</th>
+                  <th>Protein (g)</th>
+                  <th>Fat (g)</th>
+                  <th>Carbs (g)</th>
+                  <th>Kcal (Auto)</th>
+                </tr>
+              </thead>
+              <tbody id="meal-ingredients-checkboxes">
+                <!-- Checkboxes table rows loaded dynamically -->
+              </tbody>
+            </table>
           </div>
           
-          <div id="meal-selected-summary" style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.75rem; line-height:1.4">
+          <div id="meal-live-macros-summary" style="display:flex; gap:1rem; margin-top:0.75rem; font-size:0.85rem; flex-wrap:wrap; color:var(--text-secondary); background:rgba(255,255,255,0.02); padding:0.6rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.05)">
+            <!-- Dynamic totals of selected ingredients -->
+          </div>
+
+          <div id="meal-selected-summary" style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.5rem; line-height:1.4">
             <strong>Added Ingredients:</strong> None
           </div>
           <span style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; display:block">Create ingredients in the Ingredients Dashboard first.</span>
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions" style="margin-top: 1.25rem;">
           <button type="button" class="btn btn-secondary" onclick="closeMealModal()">Cancel</button>
           <button type="submit" class="btn btn-primary" id="meal-modal-submit-btn">Save Meal</button>
         </div>
@@ -580,6 +604,107 @@
       <div class="form-actions" style="margin-top:0">
         <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
         <button class="btn btn-danger" id="confirm-delete-btn">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. HISTORY LOGS DETAIL MODAL -->
+  <div class="modal-overlay" id="history-detail-modal">
+    <div class="glass-card modal-container history-modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="history-modal-title">Daily Intake Details</h2>
+          <p id="history-modal-subtitle" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;"></p>
+        </div>
+        <button class="close-btn" onclick="closeHistoryDetailModal()">&times;</button>
+      </div>
+
+      <div class="actions-bar" style="margin-bottom: 1rem;">
+        <div class="search-wrapper" style="max-width: 320px;">
+          <input type="text" class="search-input" id="search-history-modal-logs" placeholder="Search logged foods...">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="max-height: 55vh; overflow-y: auto;">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Food Item / Meal Name</th>
+              <th>Amount</th>
+              <th>Protein</th>
+              <th>Fat</th>
+              <th>Carbs</th>
+              <th>Kcal</th>
+            </tr>
+          </thead>
+          <tbody id="history-modal-logs-list">
+            <!-- Dynamically populated -->
+          </tbody>
+          <tfoot id="history-modal-logs-tfoot">
+            <!-- Totals row -->
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="form-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeHistoryDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- D. MEAL RECIPE DETAILS MODAL -->
+  <div class="modal-overlay" id="meal-details-modal">
+    <div class="glass-card modal-container meal-details-modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="meal-details-title">Meal Details</h2>
+          <p id="meal-details-subtitle" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;"></p>
+        </div>
+        <button class="close-btn" onclick="closeMealDetailsModal()">&times;</button>
+      </div>
+
+      <!-- Macro Summary Badges -->
+      <div id="meal-details-macros-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.25rem;">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div class="actions-bar" style="margin-bottom: 1rem;">
+        <div class="search-wrapper" style="max-width: 320px;">
+          <input type="text" class="search-input" id="search-meal-details-ings" placeholder="Search recipe ingredients...">
+          <svg class="search-icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="max-height: 48vh; overflow-y: auto;">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Ingredient Label</th>
+              <th>Food Library Relation</th>
+              <th>Amount</th>
+              <th>Protein (g)</th>
+              <th>Fat (g)</th>
+              <th>Carbs (g)</th>
+              <th>Kcal (Auto)</th>
+            </tr>
+          </thead>
+          <tbody id="meal-details-ingredients-list">
+            <!-- Dynamically populated -->
+          </tbody>
+          <tfoot id="meal-details-ingredients-tfoot">
+            <!-- Dynamic totals row -->
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="form-actions" style="margin-top: 1.5rem; justify-content: space-between;">
+        <button type="button" class="btn btn-primary" id="meal-details-edit-btn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.07,6.19L3,17.25Z"/></svg>
+          Edit Meal Recipe
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="closeMealDetailsModal()">Close</button>
       </div>
     </div>
   </div>
