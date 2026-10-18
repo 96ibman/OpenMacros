@@ -14,6 +14,8 @@ let state = {
 // Global variables for modals & delete callbacks
 let deleteCallback = null;
 let currentEditingMealId = null;
+let currentHistoryModalDate = null;
+let currentMealDetailsId = null;
 
 // API Base URL
 const API_BASE = '/api';
@@ -206,15 +208,54 @@ function setupEventListeners() {
   document.getElementById('search-ingredients').addEventListener('input', () => renderIngredientsTable());
   document.getElementById('search-meals').addEventListener('input', () => renderMealsGrid());
   document.getElementById('search-history').addEventListener('input', () => renderHistoryCards());
+
+  const searchHistoryModalLogs = document.getElementById('search-history-modal-logs');
+  if (searchHistoryModalLogs) {
+    searchHistoryModalLogs.addEventListener('input', () => renderHistoryDetailModal());
+  }
+
+  const searchMealDetailsIngs = document.getElementById('search-meal-details-ings');
+  if (searchMealDetailsIngs) {
+    searchMealDetailsIngs.addEventListener('input', () => renderMealDetailsModal());
+  }
+
+  // Close modals on backdrop click
+  const historyDetailModal = document.getElementById('history-detail-modal');
+  if (historyDetailModal) {
+    historyDetailModal.addEventListener('click', (e) => {
+      if (e.target.id === 'history-detail-modal') {
+        closeHistoryDetailModal();
+      }
+    });
+  }
+
+  const mealDetailsModal = document.getElementById('meal-details-modal');
+  if (mealDetailsModal) {
+    mealDetailsModal.addEventListener('click', (e) => {
+      if (e.target.id === 'meal-details-modal') {
+        closeMealDetailsModal();
+      }
+    });
+  }
+
+  // Close modals on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeHistoryDetailModal();
+      closeMealDetailsModal();
+      closeMealModal();
+      closeDeleteModal();
+    }
+  });
   
   // Search filter for ingredients inside Compose Meal Modal
   document.getElementById('meal-ing-search').addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('.meal-ing-checkbox-row');
+    const rows = document.querySelectorAll('.meal-ing-table-row');
     rows.forEach(row => {
-      const name = row.querySelector('div > div').innerText.toLowerCase();
-      if (name.includes(query)) {
-        row.style.display = 'flex';
+      const text = row.innerText.toLowerCase();
+      if (text.includes(query)) {
+        row.style.display = '';
       } else {
         row.style.display = 'none';
       }
@@ -283,6 +324,16 @@ function renderAll() {
 
   // Render the current active tab
   renderTab(state.currentTab);
+
+  // If History Detail Modal is open, refresh its content
+  if (currentHistoryModalDate) {
+    renderHistoryDetailModal();
+  }
+
+  // If Meal Details Modal is open, refresh its content
+  if (currentMealDetailsId) {
+    renderMealDetailsModal();
+  }
 }
 
 // Render active tab contents
@@ -889,7 +940,22 @@ function renderMealsGrid() {
 
   filtered.forEach(meal => {
     const card = document.createElement('div');
-    card.className = 'glass-card meal-card';
+    card.className = 'glass-card meal-card meal-card-clickable';
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('title', `Click to view ingredient details for ${meal.name}`);
+    card.setAttribute('aria-label', `View ingredient details for ${meal.name}`);
+
+    card.addEventListener('click', () => {
+      openMealDetailsModal(meal.id);
+    });
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openMealDetailsModal(meal.id);
+      }
+    });
     
     // Resolve ingredient names
     const ingList = meal.ingredientIds.map(ingId => {
@@ -897,14 +963,16 @@ function renderMealsGrid() {
       return ing ? ing.name : 'Unknown';
     }).join(', ');
 
+    const ingCount = meal.ingredientIds.length;
+
     card.innerHTML = `
       <div class="meal-card-header">
         <h3 class="meal-card-title">${meal.name}</h3>
         <div class="table-actions">
-          <button class="action-btn edit-btn" onclick="openEditMealModal('${meal.id}')" title="Edit Meal Recipe">
+          <button class="action-btn edit-btn" onclick="event.stopPropagation(); openEditMealModal('${meal.id}')" title="Edit Meal Recipe">
             <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.07,6.19L3,17.25Z"/></svg>
           </button>
-          <button class="action-btn delete-btn" onclick="deleteMeal('${meal.id}', '${meal.name}')" title="Delete Meal">
+          <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteMeal('${meal.id}', '${meal.name}')" title="Delete Meal">
             <svg viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/></svg>
           </button>
         </div>
@@ -930,6 +998,13 @@ function renderMealsGrid() {
           <span class="meal-macro-val">${Math.round(meal.kcal)}</span>
         </div>
       </div>
+      <div class="meal-card-footer">
+        <span style="font-size:0.8rem; color:var(--text-muted);">${ingCount} ingredient${ingCount === 1 ? '' : 's'}</span>
+        <span class="meal-card-view-btn">
+          View Ingredients
+          <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
+        </span>
+      </div>
     `;
     container.appendChild(card);
   });
@@ -940,27 +1015,49 @@ function renderIngredientsCheckboxes(selectedIds = []) {
   container.innerHTML = '';
 
   if (state.ingredients.length === 0) {
-    container.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.85rem">No ingredients saved. Add some in the Ingredients tab first.</div>`;
+    container.innerHTML = `<tr><td colspan="8" style="padding:1.5rem; text-align:center; color:var(--text-muted); font-size:0.85rem">No ingredients saved. Add some in the Ingredients tab first.</td></tr>`;
+    updateMealSelectedSummary();
     return;
   }
 
   state.ingredients.forEach(ing => {
-    const isChecked = selectedIds.includes(ing.id) ? 'checked' : '';
-    const label = document.createElement('label');
-    label.className = 'meal-ing-checkbox-row';
-    label.innerHTML = `
-      <input type="checkbox" name="meal-ing-check" value="${ing.id}" ${isChecked}>
-      <div style="flex:1">
-        <div style="font-weight:600; font-size:0.9rem">${ing.name}</div>
-        <div style="font-size:0.75rem; color:var(--text-secondary)">P: ${ing.protein}g | F: ${ing.fat}g | C: ${ing.carbs}g | Kcal: ${ing.kcal}</div>
-      </div>
+    const isChecked = selectedIds.includes(ing.id);
+    const item = state.items.find(i => i.id === ing.itemId);
+    const itemName = item ? item.name : 'Unknown library item';
+    const itemUnit = item ? item.unit : '';
+
+    const tr = document.createElement('tr');
+    tr.className = `meal-ing-table-row ${isChecked ? 'selected-row' : ''}`;
+    tr.style.cursor = 'pointer';
+
+    tr.innerHTML = `
+      <td style="text-align: center;" onclick="event.stopPropagation();">
+        <input type="checkbox" name="meal-ing-check" value="${ing.id}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px; accent-color: #e94057;">
+      </td>
+      <td><strong>${ing.name}</strong></td>
+      <td>${itemName}</td>
+      <td>${ing.amount} ${itemUnit}</td>
+      <td style="color:var(--color-protein); font-weight:600">${ing.protein}g</td>
+      <td style="color:var(--color-fat); font-weight:600">${ing.fat}g</td>
+      <td style="color:var(--color-carbs); font-weight:600">${ing.carbs}g</td>
+      <td style="color:var(--color-kcal); font-weight:700">${ing.kcal} kcal</td>
     `;
 
-    // Listen to changes to update selected summary
-    const checkbox = label.querySelector('input[type="checkbox"]');
-    checkbox.addEventListener('change', updateMealSelectedSummary);
+    const checkbox = tr.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', () => {
+      tr.classList.toggle('selected-row', checkbox.checked);
+      updateMealSelectedSummary();
+    });
 
-    container.appendChild(label);
+    tr.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT') {
+        checkbox.checked = !checkbox.checked;
+        tr.classList.toggle('selected-row', checkbox.checked);
+        updateMealSelectedSummary();
+      }
+    });
+
+    container.appendChild(tr);
   });
 
   updateMealSelectedSummary();
@@ -969,19 +1066,47 @@ function renderIngredientsCheckboxes(selectedIds = []) {
 function updateMealSelectedSummary() {
   const checkboxes = document.querySelectorAll('input[name="meal-ing-check"]:checked');
   const summaryEl = document.getElementById('meal-selected-summary');
-  if (!summaryEl) return;
+  const liveMacrosEl = document.getElementById('meal-live-macros-summary');
 
-  if (checkboxes.length === 0) {
-    summaryEl.innerHTML = `<strong>Added Ingredients:</strong> None`;
-    return;
-  }
+  let totalP = 0, totalF = 0, totalC = 0, totalKcal = 0;
+  const names = [];
 
-  const names = Array.from(checkboxes).map(cb => {
+  checkboxes.forEach(cb => {
     const ing = state.ingredients.find(i => i.id === cb.value);
-    return ing ? ing.name : 'Unknown';
+    if (ing) {
+      names.push(ing.name);
+      totalP += ing.protein || 0;
+      totalF += ing.fat || 0;
+      totalC += ing.carbs || 0;
+      totalKcal += ing.kcal || 0;
+    }
   });
 
-  summaryEl.innerHTML = `<strong>Added Ingredients:</strong> ${names.join(', ')}`;
+  if (summaryEl) {
+    if (names.length === 0) {
+      summaryEl.innerHTML = `<strong>Added Ingredients:</strong> None`;
+    } else {
+      summaryEl.innerHTML = `<strong>Added Ingredients:</strong> ${names.join(', ')}`;
+    }
+  }
+
+  if (liveMacrosEl) {
+    if (names.length === 0) {
+      liveMacrosEl.innerHTML = `<span><strong>Selected:</strong> 0 ingredients</span> • <span>Select ingredients above to calculate recipe totals</span>`;
+    } else {
+      liveMacrosEl.innerHTML = `
+        <span><strong>Selected:</strong> ${names.length} ingredient${names.length === 1 ? '' : 's'}</span>
+        <span>•</span>
+        <span style="color:var(--color-protein); font-weight:600">P: ${Number(totalP.toFixed(2))}g</span>
+        <span>•</span>
+        <span style="color:var(--color-fat); font-weight:600">F: ${Number(totalF.toFixed(2))}g</span>
+        <span>•</span>
+        <span style="color:var(--color-carbs); font-weight:600">C: ${Number(totalC.toFixed(2))}g</span>
+        <span>•</span>
+        <span style="color:var(--color-kcal); font-weight:700">Kcal: ${Math.round(totalKcal)}</span>
+      `;
+    }
+  }
 }
 
 function openCreateMealModal() {
@@ -990,7 +1115,8 @@ function openCreateMealModal() {
   document.getElementById('meal-form').reset();
   document.getElementById('meal-edit-id').value = '';
   document.getElementById('meal-modal-submit-btn').innerText = 'Save Meal';
-  document.getElementById('meal-ing-search').value = '';
+  const searchInput = document.getElementById('meal-ing-search');
+  if (searchInput) searchInput.value = '';
   
   renderIngredientsCheckboxes();
   document.getElementById('meal-modal').classList.add('active');
@@ -1005,7 +1131,8 @@ function openEditMealModal(id) {
   document.getElementById('meal-edit-id').value = meal.id;
   document.getElementById('meal-name-input').value = meal.name;
   document.getElementById('meal-modal-submit-btn').innerText = 'Save Edits';
-  document.getElementById('meal-ing-search').value = '';
+  const searchInput = document.getElementById('meal-ing-search');
+  if (searchInput) searchInput.value = '';
 
   renderIngredientsCheckboxes(meal.ingredientIds);
   document.getElementById('meal-modal').classList.add('active');
@@ -1014,6 +1141,135 @@ function openEditMealModal(id) {
 function closeMealModal() {
   document.getElementById('meal-modal').classList.remove('active');
 }
+
+// ----------------------------------------------------
+// MEAL RECIPE DETAILS MODAL (READ-ONLY INGREDIENTS TABLE)
+// ----------------------------------------------------
+
+function openMealDetailsModal(id) {
+  const meal = state.meals.find(m => m.id === id);
+  if (!meal) return;
+
+  currentMealDetailsId = id;
+  const searchInput = document.getElementById('search-meal-details-ings');
+  if (searchInput) searchInput.value = '';
+
+  renderMealDetailsModal();
+  const modal = document.getElementById('meal-details-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeMealDetailsModal() {
+  currentMealDetailsId = null;
+  const modal = document.getElementById('meal-details-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function renderMealDetailsModal() {
+  if (!currentMealDetailsId) return;
+  const meal = state.meals.find(m => m.id === currentMealDetailsId);
+  if (!meal) {
+    closeMealDetailsModal();
+    return;
+  }
+
+  const titleEl = document.getElementById('meal-details-title');
+  const subtitleEl = document.getElementById('meal-details-subtitle');
+  const macrosEl = document.getElementById('meal-details-macros-container');
+  const listEl = document.getElementById('meal-details-ingredients-list');
+  const tfootEl = document.getElementById('meal-details-ingredients-tfoot');
+  const editBtn = document.getElementById('meal-details-edit-btn');
+  const searchInput = document.getElementById('search-meal-details-ings');
+  const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  if (titleEl) {
+    titleEl.innerText = meal.name;
+  }
+  if (subtitleEl) {
+    subtitleEl.innerText = `${meal.ingredientIds.length} ingredient${meal.ingredientIds.length === 1 ? '' : 's'} in recipe • Aggregate Total: ${Math.round(meal.kcal)} kcal`;
+  }
+
+  if (macrosEl) {
+    macrosEl.innerHTML = `
+      <div class="meal-macro-box p" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;">
+        <span class="meal-macro-lbl">Protein</span>
+        <span class="meal-macro-val" style="font-size: 1.15rem; font-weight: 700;">${meal.protein}g</span>
+      </div>
+      <div class="meal-macro-box f" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;">
+        <span class="meal-macro-lbl">Fat</span>
+        <span class="meal-macro-val" style="font-size: 1.15rem; font-weight: 700;">${meal.fat}g</span>
+      </div>
+      <div class="meal-macro-box c" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;">
+        <span class="meal-macro-lbl">Carbs</span>
+        <span class="meal-macro-val" style="font-size: 1.15rem; font-weight: 700;">${meal.carbs}g</span>
+      </div>
+      <div class="meal-macro-box k" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;">
+        <span class="meal-macro-lbl">Calories</span>
+        <span class="meal-macro-val" style="font-size: 1.15rem; font-weight: 700;">${Math.round(meal.kcal)} kcal</span>
+      </div>
+    `;
+  }
+
+  if (editBtn) {
+    editBtn.onclick = () => {
+      closeMealDetailsModal();
+      openEditMealModal(meal.id);
+    };
+  }
+
+  // Resolve meal ingredients
+  const allMealIngs = meal.ingredientIds.map(ingId => {
+    const ing = state.ingredients.find(i => i.id === ingId);
+    if (!ing) return null;
+    const item = state.items.find(i => i.id === ing.itemId);
+    return {
+      ing,
+      item,
+      itemName: item ? item.name : 'Unknown library item',
+      itemUnit: item ? item.unit : ''
+    };
+  }).filter(Boolean);
+
+  const filteredIngs = allMealIngs.filter(({ ing, itemName }) => {
+    if (!searchVal) return true;
+    return ing.name.toLowerCase().includes(searchVal) || itemName.toLowerCase().includes(searchVal);
+  });
+
+  listEl.innerHTML = '';
+  tfootEl.innerHTML = '';
+
+  if (filteredIngs.length === 0) {
+    listEl.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 2rem;">${allMealIngs.length === 0 ? 'No ingredients assigned to this meal.' : 'No ingredients match your search.'}</td></tr>`;
+    return;
+  }
+
+  filteredIngs.forEach(({ ing, itemName, itemUnit }) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${ing.name}</strong></td>
+      <td>${itemName}</td>
+      <td>${ing.amount} ${itemUnit}</td>
+      <td style="color:var(--color-protein); font-weight:600">${ing.protein}g</td>
+      <td style="color:var(--color-fat); font-weight:600">${ing.fat}g</td>
+      <td style="color:var(--color-carbs); font-weight:600">${ing.carbs}g</td>
+      <td style="color:var(--color-kcal); font-weight:700">${ing.kcal} kcal</td>
+    `;
+    listEl.appendChild(tr);
+  });
+
+  tfootEl.innerHTML = `
+    <tr style="border-top: 1px solid var(--border-glass); font-weight: 700; background: rgba(255,255,255,0.02)">
+      <td colspan="3" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; color: var(--text-secondary)">Total Recipe Nutrition</td>
+      <td style="color:var(--color-protein); font-weight:700">${meal.protein}g</td>
+      <td style="color:var(--color-fat); font-weight:700">${meal.fat}g</td>
+      <td style="color:var(--color-carbs); font-weight:700">${meal.carbs}g</td>
+      <td style="color:var(--color-kcal); font-weight:800">${Math.round(meal.kcal)} kcal</td>
+    </tr>
+  `;
+}
+
+window.openMealDetailsModal = openMealDetailsModal;
+window.closeMealDetailsModal = closeMealDetailsModal;
 
 async function handleMealFormSubmit(e) {
   e.preventDefault();
@@ -1081,6 +1337,9 @@ function deleteMeal(id, name) {
       const res = await fetch(`${API_BASE}/meals/${id}`, { method: 'DELETE' });
       if (res.ok) {
         state.meals = state.meals.filter(m => m.id !== id);
+        if (currentMealDetailsId === id) {
+          closeMealDetailsModal();
+        }
         showToast(`Meal recipe "${name}" deleted.`);
         renderAll();
       }
@@ -1146,7 +1405,7 @@ function renderHistoryCards() {
 
   // Filter summarized history dates
   const filtered = datesSummarized.filter(day => {
-    const isToday = day.date === state.activeDate ? 'today current' : '';
+    const isToday = (day.date === state.activeDate) || (day.date === getFormattedDate(new Date())) ? 'today current active' : '';
     const queryMatches = day.date.toLowerCase().includes(searchVal) || 
                          String(day.kcal).includes(searchVal) ||
                          isToday.includes(searchVal);
@@ -1161,9 +1420,26 @@ function renderHistoryCards() {
   filtered.forEach(day => {
     const card = document.createElement('div');
     card.className = 'glass-card history-card';
-    if (day.date === state.activeDate) {
+    const isToday = (day.date === state.activeDate) || (day.date === getFormattedDate(new Date()));
+
+    if (isToday) {
       card.style.borderColor = 'rgba(233, 64, 87, 0.4)';
       card.style.background = 'rgba(233, 64, 87, 0.05)';
+    } else {
+      card.classList.add('history-card-clickable');
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', `View logged food details for ${day.date}`);
+      card.setAttribute('title', `Click to view food log details for ${day.date}`);
+      card.addEventListener('click', () => {
+        openHistoryDetailModal(day.date);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openHistoryDetailModal(day.date);
+        }
+      });
     }
 
     const goals = state.goals; // Let's evaluate relative to current goals
@@ -1175,9 +1451,28 @@ function renderHistoryCards() {
       k: Math.min(100, (day.kcal / goals.kcal) * 100),
     };
 
-    const activeTextBadge = day.date === state.activeDate 
+    const activeTextBadge = isToday 
       ? '<span style="font-size:0.7rem; color:#e94057; font-weight:700; background:rgba(233, 64, 87, 0.15); padding:0.15rem 0.4rem; border-radius:4px">ACTIVE DAY</span>' 
       : '';
+
+    const dayLogsCount = logsByDate[day.date] ? logsByDate[day.date].length : 0;
+
+    const footerHtml = isToday
+      ? `
+        <div class="history-card-footer">
+          <span style="color: var(--text-muted);">${dayLogsCount} item${dayLogsCount === 1 ? '' : 's'} logged</span>
+          <span style="color: #e94057; font-weight: 700; font-size: 0.72rem; background: rgba(233, 64, 87, 0.12); padding: 0.2rem 0.5rem; border-radius: 4px;">ACTIVE TODAY</span>
+        </div>
+      `
+      : `
+        <div class="history-card-footer">
+          <span style="color: var(--text-muted);">${dayLogsCount} item${dayLogsCount === 1 ? '' : 's'} logged</span>
+          <span class="history-card-view-btn">
+            View Details
+            <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
+          </span>
+        </div>
+      `;
 
     card.innerHTML = `
       <div class="history-card-header">
@@ -1220,10 +1515,113 @@ function renderHistoryCards() {
           <div class="history-bar-fill" style="width: ${pct.k}%; background: var(--color-kcal)"></div>
         </div>
       </div>
+      ${footerHtml}
     `;
     container.appendChild(card);
   });
 }
+
+// ----------------------------------------------------
+// 6. HISTORY DETAIL MODAL (READ-ONLY)
+// ----------------------------------------------------
+
+function openHistoryDetailModal(date) {
+  // Prevent opening today's / active day card
+  if (date === state.activeDate || date === getFormattedDate(new Date())) {
+    return;
+  }
+
+  currentHistoryModalDate = date;
+  const searchInput = document.getElementById('search-history-modal-logs');
+  if (searchInput) searchInput.value = '';
+  renderHistoryDetailModal();
+  const modal = document.getElementById('history-detail-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeHistoryDetailModal() {
+  currentHistoryModalDate = null;
+  const modal = document.getElementById('history-detail-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function renderHistoryDetailModal() {
+  if (!currentHistoryModalDate) return;
+  const date = currentHistoryModalDate;
+  const titleEl = document.getElementById('history-modal-title');
+  const subtitleEl = document.getElementById('history-modal-subtitle');
+  const listEl = document.getElementById('history-modal-logs-list');
+  const tfootEl = document.getElementById('history-modal-logs-tfoot');
+  const searchInput = document.getElementById('search-history-modal-logs');
+  const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  const allDayLogs = state.logs.filter(log => log.date === date);
+  const totalMacros = allDayLogs.reduce((acc, log) => {
+    acc.p += log.protein || 0;
+    acc.f += log.fat || 0;
+    acc.c += log.carbs || 0;
+    acc.kcal += log.kcal || 0;
+    return acc;
+  }, { p: 0, f: 0, c: 0, kcal: 0 });
+
+  if (titleEl) {
+    titleEl.innerText = `Daily Intake — ${date}`;
+  }
+  if (subtitleEl) {
+    subtitleEl.innerText = `${allDayLogs.length} logged item${allDayLogs.length === 1 ? '' : 's'} • Total: ${Math.round(totalMacros.kcal)} kcal (${totalMacros.p.toFixed(1)}g P, ${totalMacros.f.toFixed(1)}g F, ${totalMacros.c.toFixed(1)}g C)`;
+  }
+
+  const filteredLogs = allDayLogs.filter(log => {
+    if (!searchVal) return true;
+    return log.name.toLowerCase().includes(searchVal) || log.type.toLowerCase().includes(searchVal);
+  });
+
+  listEl.innerHTML = '';
+  tfootEl.innerHTML = '';
+
+  if (filteredLogs.length === 0) {
+    listEl.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 2rem;">${allDayLogs.length === 0 ? 'No food logged for this day.' : 'No items match your search.'}</td></tr>`;
+    return;
+  }
+
+  filteredLogs.forEach(log => {
+    const tr = document.createElement('tr');
+
+    // Format amount label
+    let amountDisplay = '';
+    if (log.type === 'item') {
+      const item = state.items.find(i => i.id === log.referenceId);
+      const unit = item ? item.unit : '';
+      amountDisplay = unit ? `${log.amount} ${unit}` : `${log.amount}`;
+    } else {
+      amountDisplay = `${(log.amount * 100).toFixed(0)}% portion`;
+    }
+
+    tr.innerHTML = `
+      <td><span style="font-size:0.75rem; text-transform:uppercase; background:rgba(255,255,255,0.06); padding:0.25rem 0.5rem; border-radius:4px">${log.type}</span></td>
+      <td><strong>${log.name}</strong></td>
+      <td>${amountDisplay}</td>
+      <td style="color:var(--color-protein); font-weight:600">${log.protein}g</td>
+      <td style="color:var(--color-fat); font-weight:600">${log.fat}g</td>
+      <td style="color:var(--color-carbs); font-weight:600">${log.carbs}g</td>
+      <td style="color:var(--color-kcal); font-weight:700">${log.kcal} kcal</td>
+    `;
+    listEl.appendChild(tr);
+  });
+
+  tfootEl.innerHTML = `
+    <tr style="border-top: 1px solid var(--border-glass); font-weight: 700; background: rgba(255,255,255,0.02)">
+      <td colspan="3" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; color: var(--text-secondary)">Total</td>
+      <td style="color:var(--color-protein); font-weight:700">${Number(totalMacros.p.toFixed(2))}g</td>
+      <td style="color:var(--color-fat); font-weight:700">${Number(totalMacros.f.toFixed(2))}g</td>
+      <td style="color:var(--color-carbs); font-weight:700">${Number(totalMacros.c.toFixed(2))}g</td>
+      <td style="color:var(--color-kcal); font-weight:800">${Number(totalMacros.kcal.toFixed(2))} kcal</td>
+    </tr>
+  `;
+}
+
+window.openHistoryDetailModal = openHistoryDetailModal;
+window.closeHistoryDetailModal = closeHistoryDetailModal;
 
 // ----------------------------------------------------
 // DELETE CONFIRMATION MODAL HELPER
